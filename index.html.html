@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Computation Sheet v4.3</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+        .premium-title { font-family: 'Playfair Display', serif; }
+        .input-card { @apply bg-white p-6 rounded-3xl border border-slate-100 mb-5 shadow-sm; }
+        .field-label { @apply block text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] mb-2; }
+        .input-style { @apply w-full border-b-2 border-slate-100 py-2 outline-none focus:border-indigo-500 text-slate-800 font-semibold bg-transparent transition-all; }
+        .nav-btn { @apply flex-1 py-4 px-2 text-sm font-black uppercase rounded-2xl transition-all border-2; }
+        .nav-active { @apply bg-indigo-600 text-white border-indigo-600 shadow-lg scale-105; }
+        .nav-inactive { @apply bg-white text-slate-400 border-slate-100; }
+        .badge { @apply bg-slate-100 text-slate-500 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider; }
+        @media print { .no-print { display: none !important; } body { background: white; padding: 0; } #output-screen { display: block !important; padding: 0; } }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen pb-12">
+
+    <header class="bg-slate-900 text-white p-6 pb-12 rounded-b-[45px] no-print">
+        <div class="text-center mb-6">
+            <p class="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-400 mb-1">Powered by The Real Estate Network</p>
+            <h1 class="text-xl font-black italic tracking-tighter">COMPUTATION SHEET</h1>
+        </div>
+        <div class="flex gap-3 px-2">
+            <button onclick="switchTab(0)" id="btn0" class="nav-btn nav-active">QUOT 1</button>
+            <button onclick="switchTab(1)" id="btn1" class="nav-btn nav-inactive">QUOT 2</button>
+            <button onclick="switchTab(2)" id="btn2" class="nav-btn nav-inactive">QUOT 3</button>
+        </div>
+    </header>
+
+    <main id="input-screen" class="px-5 -mt-8 no-print">
+        <div class="input-card">
+            <input type="text" id="project" placeholder="PROJECT NAME" class="input-style text-xl mb-6 font-black uppercase">
+            <div class="grid grid-cols-2 gap-6 mb-4">
+                <div><span class="field-label">Unit Type</span><input type="text" id="unitType" placeholder="1BR" class="input-style"></div>
+                <div><span class="field-label">Unit #</span><input type="text" id="unit" placeholder="1209" class="input-style"></div>
+            </div>
+            <div class="grid grid-cols-2 gap-6">
+                <div><span class="field-label">Area (sqm)</span><input type="number" id="area" placeholder="26" class="input-style"></div>
+                <div><span class="field-label">Turnover</span><input type="text" id="turnover" placeholder="2026" class="input-style"></div>
+            </div>
+        </div>
+
+        <div class="input-card border-l-8 border-emerald-500">
+            <span class="field-label text-emerald-600 font-black italic">List Price</span>
+            <input type="text" id="sp" placeholder="0.00" oninput="formatAccounting(this)" class="input-style text-2xl font-black mb-4">
+            
+            <div class="space-y-4 mb-4">
+                <div class="flex gap-4">
+                    <div class="w-1/2"><span class="field-label">Abs Disc %</span><input type="number" id="abs_p" value="0" oninput="if(this.value.length>2)this.value=this.value.slice(0,2)" class="input-style"></div>
+                    <div class="w-1/2"><span class="field-label">Abs Disc Amt</span><input type="text" id="abs_v" value="0" oninput="formatAccounting(this)" class="input-style"></div>
+                </div>
+                <div><span class="field-label">Term Discount %</span><input type="number" id="term_p" value="0" oninput="if(this.value.length>2)this.value=this.value.slice(0,2)" class="input-style"></div>
+                <div><span class="field-label">Promo Discount %</span><input type="number" id="promo_p" value="0" oninput="if(this.value.length>2)this.value=this.value.slice(0,2)" class="input-style"></div>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+                <div><span class="field-label">VAT %</span><input type="number" id="vat_p" value="12" class="input-style"></div>
+                <div><span class="field-label">Other %</span><input type="number" id="oc_p" value="9.5" class="input-style"></div>
+            </div>
+        </div>
+
+        <div class="input-card border-l-8 border-indigo-600">
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div><span class="field-label">DP 1 %</span><input type="number" id="dp1_p" value="10" class="input-style"></div>
+                <div><span class="field-label">Months</span><input type="number" id="dp1_m" value="24" class="input-style"></div>
+            </div>
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div><span class="field-label">DP 2 %</span><input type="number" id="dp2_p" value="0" class="input-style"></div>
+                <div><span class="field-label">Months</span><input type="number" id="dp2_m" value="0" class="input-style"></div>
+            </div>
+            <div><span class="field-label">Reservation Fee</span><input type="text" id="rf" value="50,000" oninput="formatAccounting(this)" class="input-style"></div>
+        </div>
+
+        <button onclick="generateSheet()" class="w-full bg-slate-900 text-white py-6 rounded-3xl font-black shadow-2xl mb-12 uppercase tracking-widest">Generate & View</button>
+    </main>
+
+    <div id="output-screen" class="hidden p-4">
+        <div id="pdf-content" class="bg-white rounded-[40px] shadow-2xl p-8 max-w-2xl mx-auto border border-slate-100">
+            <div class="text-center mb-8">
+                <p class="text-[8px] font-black uppercase tracking-[0.4em] text-indigo-500 mb-2">Powered by The Real Estate Network</p>
+                <h2 id="r_project" class="premium-title text-4xl font-black text-slate-900 uppercase mb-4"></h2>
+                <div class="flex justify-center gap-2 flex-wrap" id="badge-container"></div>
+            </div>
+
+            <div class="bg-slate-50 p-6 rounded-3xl mb-6">
+                <div class="space-y-2 mb-4">
+                    <div class="flex justify-between"><span class="text-[8px] font-black text-slate-400 uppercase tracking-widest">List Price</span><span id="r_sp" class="text-xs font-bold text-slate-700"></span></div>
+                    <div id="row_abs" class="flex justify-between text-rose-500 hidden"><span id="label_abs" class="text-[8px] font-black uppercase tracking-widest italic"></span><span id="r_abs" class="text-xs font-bold"></span></div>
+                    <div id="row_term" class="flex justify-between text-rose-500 hidden"><span id="label_term" class="text-[8px] font-black uppercase tracking-widest italic"></span><span id="r_term" class="text-xs font-bold"></span></div>
+                    <div id="row_promo" class="flex justify-between text-rose-500 hidden"><span id="label_promo" class="text-[8px] font-black uppercase tracking-widest italic"></span><span id="r_promo" class="text-xs font-bold"></span></div>
+                    <div class="flex justify-between pt-2 border-t border-slate-200"><span class="text-[8px] font-black text-slate-400 uppercase tracking-widest">Net Selling Price</span><span id="r_nsp" class="text-xs font-bold text-slate-700"></span></div>
+                    <div class="flex justify-between items-center pt-2 border-b border-slate-200 pb-2">
+                        <span class="text-[8px] font-black text-indigo-500 uppercase tracking-widest">Total Contract Price</span>
+                        <h3 id="r_tcp" class="text-xl font-black text-slate-900 text-right"></h3>
+                    </div>
+                    <p class="text-[7px] font-bold text-slate-400 uppercase italic tracking-wider mt-1 text-right leading-none">* Inclusive of VAT and other charges</p>
+                </div>
+            </div>
+
+            <div class="flex justify-between p-4 bg-white border border-slate-100 rounded-2xl mb-6">
+                <span class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Reservation Fee</span>
+                <span id="r_rf" class="font-black text-indigo-600 text-lg"></span>
+            </div>
+
+            <div class="space-y-4 mb-8">
+                <div id="r_dp1_card" class="p-6 bg-slate-900 text-white rounded-[30px] border-l-4 border-indigo-500">
+                    <p id="r_dp1_title" class="text-[9px] font-black text-indigo-400 uppercase mb-3 tracking-widest"></p>
+                    <div class="flex justify-between items-end">
+                        <div><p class="text-[8px] opacity-40 uppercase font-bold">Total Equity</p><p id="r_dp1_amt" class="text-xs font-bold"></p></div>
+                        <div class="text-right"><p class="text-[9px] font-bold text-indigo-300 uppercase mb-1">Monthly Payment</p><p id="r_dp1_mo" class="text-xl font-black text-white"></p></div>
+                    </div>
+                </div>
+                <div id="r_dp2_card" class="hidden p-6 bg-indigo-50 rounded-[30px] border border-indigo-100">
+                    <p id="r_dp2_title" class="text-[9px] font-black text-indigo-600 uppercase mb-3 tracking-widest"></p>
+                    <div class="flex justify-between items-end">
+                        <div><p class="text-[8px] text-indigo-400 uppercase font-bold">Total Equity</p><p id="r_dp2_amt" class="text-xs font-bold text-indigo-900"></p></div>
+                        <div class="text-right"><p class="text-[9px] font-bold text-indigo-600 uppercase mb-1">Monthly Payment</p><p id="r_dp2_mo" class="text-xl font-black text-indigo-900"></p></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-8 bg-slate-50 rounded-[35px]">
+                <div class="text-center mb-6"><span class="text-[10px] font-black uppercase text-indigo-600 tracking-widest block mb-1">Loanable Balance</span><span id="r_bal" class="text-2xl font-black text-slate-900"></span></div>
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="bg-white p-4 rounded-2xl text-center shadow-sm"><p class="text-[8px] font-black text-indigo-500 uppercase mb-2">10 Yrs</p><p id="b10" class="text-[10px] font-black text-slate-900"></p></div>
+                    <div class="bg-white p-4 rounded-2xl text-center border border-indigo-100 shadow-sm"><p class="text-[8px] font-black text-indigo-500 uppercase mb-2">15 Yrs</p><p id="b15" class="text-[10px] font-black text-slate-900"></p></div>
+                    <div class="bg-white p-4 rounded-2xl text-center shadow-sm"><p class="text-[8px] font-black text-indigo-500 uppercase mb-2">20 Yrs</p><p id="b20" class="text-[10px] font-black text-slate-900"></p></div>
+                </div>
+            </div>
+        </div>
+        <div class="no-print space-y-4 mt-8">
+            <button onclick="window.print()" class="w-full bg-indigo-600 text-white py-6 rounded-3xl font-black shadow-xl uppercase tracking-widest">Print / Save as PDF</button>
+            <button onclick="backToForm()" class="w-full py-4 text-slate-400 font-bold text-xs uppercase tracking-widest text-center">Edit Details</button>
+        </div>
+    </div>
+
+    <script>
+        let currentTab = 0;
+        let dataStore = [{}, {}, {}];
+        const fmt = (v) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(v || 0);
+
+        function formatAccounting(el) {
+            let value = el.value.replace(/[^0-9.]/g, '');
+            if (value === "") return el.value = "";
+            let parts = value.split('.');
+            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            el.value = parts.join('.');
+        }
+
+        function cleanVal(id) {
+            let val = document.getElementById(id).value.replace(/,/g, '');
+            return parseFloat(val) || 0;
+        }
+
+        function saveToStore() {
+            const fields = ['project','unitType','unit','area','turnover','sp','abs_p','abs_v','term_p','promo_p','vat_p','oc_p','dp1_p','dp1_m','dp2_p','dp2_m','rf'];
+            fields.forEach(id => { const el = document.getElementById(id); if(el) dataStore[currentTab][id] = el.value; });
+        }
+
+        function loadFromStore() {
+            const fields = ['project','unitType','unit','area','turnover','sp','abs_p','abs_v','term_p','promo_p','vat_p','oc_p','dp1_p','dp1_m','dp2_p','dp2_m','rf'];
+            fields.forEach(id => { const el = document.getElementById(id); if(el) el.value = dataStore[currentTab][id] || (id==='vat_p'?"12":id==='oc_p'?"9.5":"0"); });
+        }
+
+        function switchTab(i) {
+            saveToStore(); currentTab = i;
+            for(let x=0; x<3; x++) document.getElementById(`btn${x}`).className = (x===i) ? 'nav-btn nav-active' : 'nav-btn nav-inactive';
+            loadFromStore(); backToForm();
+        }
+
+        function generateSheet() {
+            saveToStore();
+            let sp = cleanVal('sp');
+            let abs_amt = (sp * (cleanVal('abs_p')/100)) + cleanVal('abs_v');
+            let nsp = (sp - abs_amt) * (1 - cleanVal('term_p')/100) * (1 - cleanVal('promo_p')/100);
+            let tcp = nsp * (1 + (cleanVal('vat_p')/100) + (cleanVal('oc_p')/100));
+            let rf = cleanVal('rf'), dp1_amt = tcp * (cleanVal('dp1_p')/100), dp1_mo = (dp1_amt - rf) / (cleanVal('dp1_m') || 1);
+            let dp2_amt = tcp * (cleanVal('dp2_p')/100), dp2_mo = dp2_amt / (cleanVal('dp2_m') || 1);
+            let bal = tcp - dp1_amt - dp2_amt;
+
+            document.getElementById('r_project').innerText = document.getElementById('project').value || "QUOTATION";
+            document.getElementById('badge-container').innerHTML = `<span class="badge">${document.getElementById('unitType').value}</span><span class="badge">Unit ${document.getElementById('unit').value}</span><span class="badge">${cleanVal('area')} SQM</span><span class="badge">${document.getElementById('turnover').value}</span>`;
+            document.getElementById('r_sp').innerText = fmt(sp);
+            
+            const showRow = (rowId, labelId, labelTxt, amt, p) => {
+                const row = document.getElementById(rowId);
+                if(amt > 0 || p > 0) {
+                    row.classList.remove('hidden');
+                    document.getElementById(labelId).innerText = `${labelTxt} (${p}%)`;
+                    document.getElementById('r_' + rowId.split('_')[1]).innerText = "- " + fmt(amt);
+                } else row.classList.add('hidden');
+            };
+
+            showRow('row_abs', 'label_abs', 'Absolute Discount', abs_amt, cleanVal('abs_p'));
+            showRow('row_term', 'label_term', 'Term Discount', (sp-abs_amt)*(cleanVal('term_p')/100), cleanVal('term_p'));
+            showRow('row_promo', 'label_promo', 'Promo Discount', (nsp/(1-cleanVal('promo_p')/100))*(cleanVal('promo_p')/100), cleanVal('promo_p'));
+
+            document.getElementById('r_nsp').innerText = fmt(nsp);
+            document.getElementById('r_tcp').innerText = fmt(tcp);
+            document.getElementById('r_rf').innerText = fmt(rf);
+            document.getElementById('r_dp1_title').innerText = `EQUITY PHASE 1 (${cleanVal('dp1_p')}%) — ${cleanVal('dp1_m')} MONTHS`;
+            document.getElementById('r_dp1_amt').innerText = fmt(dp1_amt);
+            document.getElementById('r_dp1_mo').innerText = fmt(dp1_mo);
+
+            if(cleanVal('dp2_p') > 0) {
+                document.getElementById('r_dp2_card').classList.remove('hidden');
+                document.getElementById('r_dp2_title').innerText = `EQUITY PHASE 2 (${cleanVal('dp2_p')}%) — ${cleanVal('dp2_m')} MONTHS`;
+                document.getElementById('r_dp2_amt').innerText = fmt(dp2_amt);
+                document.getElementById('r_dp2_mo').innerText = fmt(dp2_mo);
+            } else document.getElementById('r_dp2_card').classList.add('hidden');
+
+            document.getElementById('r_bal').innerText = fmt(bal);
+            const pmt = (p, y) => fmt((p * 0.005416) / (1 - Math.pow(1 + 0.005416, -(y * 12))));
+            document.getElementById('b10').innerText = pmt(bal, 10);
+            document.getElementById('b15').innerText = pmt(bal, 15);
+            document.getElementById('b20').innerText = pmt(bal, 20);
+
+            document.getElementById('input-screen').classList.add('hidden');
+            document.getElementById('output-screen').classList.remove('hidden');
+            window.scrollTo(0,0);
+        }
+
+        function backToForm() {
+            document.getElementById('output-screen').classList.add('hidden');
+            document.getElementById('input-screen').classList.remove('hidden');
+        }
+
+        window.onload = loadFromStore;
+    </script>
+</body>
+</html>
