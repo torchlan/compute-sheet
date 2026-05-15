@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Computation Sheet v4.3</title>
+    <title>Computation Sheet v4.7</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
     <style>
@@ -35,7 +35,9 @@
 
     <main id="input-screen" class="px-5 -mt-8 no-print">
         <div class="input-card">
-            <input type="text" id="project" placeholder="PROJECT NAME" class="input-style text-xl mb-6 font-black uppercase">
+            <span class="field-label">Project Name</span>
+            <input type="text" id="project" placeholder="ENTER PROJECT NAME" class="input-style text-xl mb-6 font-black uppercase">
+            
             <div class="grid grid-cols-2 gap-6 mb-4">
                 <div><span class="field-label">Unit Type</span><input type="text" id="unitType" placeholder="1BR" class="input-style"></div>
                 <div><span class="field-label">Unit #</span><input type="text" id="unit" placeholder="1209" class="input-style"></div>
@@ -49,16 +51,14 @@
         <div class="input-card border-l-8 border-emerald-500">
             <span class="field-label text-emerald-600 font-black italic">List Price</span>
             <input type="text" id="sp" placeholder="0.00" oninput="formatAccounting(this)" class="input-style text-2xl font-black mb-4">
-            
             <div class="space-y-4 mb-4">
                 <div class="flex gap-4">
-                    <div class="w-1/2"><span class="field-label">Abs Disc %</span><input type="number" id="abs_p" value="0" oninput="if(this.value.length>2)this.value=this.value.slice(0,2)" class="input-style"></div>
+                    <div class="w-1/2"><span class="field-label">Abs Disc %</span><input type="number" id="abs_p" value="0" class="input-style"></div>
                     <div class="w-1/2"><span class="field-label">Abs Disc Amt</span><input type="text" id="abs_v" value="0" oninput="formatAccounting(this)" class="input-style"></div>
                 </div>
-                <div><span class="field-label">Term Discount %</span><input type="number" id="term_p" value="0" oninput="if(this.value.length>2)this.value=this.value.slice(0,2)" class="input-style"></div>
-                <div><span class="field-label">Promo Discount %</span><input type="number" id="promo_p" value="0" oninput="if(this.value.length>2)this.value=this.value.slice(0,2)" class="input-style"></div>
+                <div><span class="field-label">Term Discount %</span><input type="number" id="term_p" value="0" class="input-style"></div>
+                <div><span class="field-label">Promo Discount %</span><input type="number" id="promo_p" value="0" class="input-style"></div>
             </div>
-            
             <div class="grid grid-cols-2 gap-4">
                 <div><span class="field-label">VAT %</span><input type="number" id="vat_p" value="12" class="input-style"></div>
                 <div><span class="field-label">Other %</span><input type="number" id="oc_p" value="9.5" class="input-style"></div>
@@ -84,7 +84,7 @@
         <div id="pdf-content" class="bg-white rounded-[40px] shadow-2xl p-8 max-w-2xl mx-auto border border-slate-100">
             <div class="text-center mb-8">
                 <p class="text-[8px] font-black uppercase tracking-[0.4em] text-indigo-500 mb-2">Powered by The Real Estate Network</p>
-                <h2 id="r_project" class="premium-title text-4xl font-black text-slate-900 uppercase mb-4"></h2>
+                <h2 id="r_project_display" class="premium-title text-4xl font-black text-slate-900 uppercase mb-4 tracking-tight"></h2>
                 <div class="flex justify-center gap-2 flex-wrap" id="badge-container"></div>
             </div>
 
@@ -154,7 +154,7 @@
         }
 
         function cleanVal(id) {
-            let val = document.getElementById(id).value.replace(/,/g, '');
+            let val = document.getElementById(id).value.toString().replace(/,/g, '');
             return parseFloat(val) || 0;
         }
 
@@ -165,7 +165,12 @@
 
         function loadFromStore() {
             const fields = ['project','unitType','unit','area','turnover','sp','abs_p','abs_v','term_p','promo_p','vat_p','oc_p','dp1_p','dp1_m','dp2_p','dp2_m','rf'];
-            fields.forEach(id => { const el = document.getElementById(id); if(el) el.value = dataStore[currentTab][id] || (id==='vat_p'?"12":id==='oc_p'?"9.5":"0"); });
+            fields.forEach(id => { 
+                const el = document.getElementById(id); 
+                if(el) {
+                    el.value = dataStore[currentTab][id] !== undefined ? dataStore[currentTab][id] : (id==='vat_p'?"12":id==='oc_p'?"9.5":"");
+                }
+            });
         }
 
         function switchTab(i) {
@@ -184,8 +189,8 @@
             let dp2_amt = tcp * (cleanVal('dp2_p')/100), dp2_mo = dp2_amt / (cleanVal('dp2_m') || 1);
             let bal = tcp - dp1_amt - dp2_amt;
 
-            document.getElementById('r_project').innerText = document.getElementById('project').value || "QUOTATION";
-            document.getElementById('badge-container').innerHTML = `<span class="badge">${document.getElementById('unitType').value}</span><span class="badge">Unit ${document.getElementById('unit').value}</span><span class="badge">${cleanVal('area')} SQM</span><span class="badge">${document.getElementById('turnover').value}</span>`;
+            document.getElementById('r_project_display').innerText = document.getElementById('project').value || "QUOTATION";
+            document.getElementById('badge-container').innerHTML = `<span class="badge">${document.getElementById('unitType').value || '-'}</span><span class="badge">Unit ${document.getElementById('unit').value || '-'}</span><span class="badge">${cleanVal('area')} SQM</span><span class="badge">${document.getElementById('turnover').value || '-'}</span>`;
             document.getElementById('r_sp').innerText = fmt(sp);
             
             const showRow = (rowId, labelId, labelTxt, amt, p) => {
